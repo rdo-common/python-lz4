@@ -1,0 +1,323 @@
+diff -u -r -N -x 'lz4*.c' -x 'lz4*.h' lz4-0.7.0/MANIFEST.in lz4-0.7.0-plus/MANIFEST.in
+--- lz4-0.7.0/MANIFEST.in	2014-03-21 00:06:08.000000000 +0000
++++ lz4-0.7.0-plus/MANIFEST.in	2015-07-02 13:25:20.000000000 +0100
+@@ -1,2 +1,4 @@
+ include README.rst
+ include src/*.h
++include tests/*.py
++exclude tests/*.pyc
+diff -u -r -N -x 'lz4*.c' -x 'lz4*.h' lz4-0.7.0/PKG-INFO lz4-0.7.0-plus/PKG-INFO
+--- lz4-0.7.0/PKG-INFO	2014-07-07 14:04:31.000000000 +0100
++++ lz4-0.7.0-plus/PKG-INFO	2015-07-02 13:27:18.000000000 +0100
+@@ -35,8 +35,8 @@
+             True
+             >>>
+         
+-        Methods
+-        =======
++        Methods and Constants
++        =====================
+         The bindings provides some aliases too::
+         
+             >>> import lz4
+@@ -44,6 +44,8 @@
+             True
+             >>> lz4.LZ4_uncompress == lz4.uncompress == z4.decompress == lz4.loads
+             True
++            >>> lz4.VERSION == lz4.__version__  # e.g. "0.7.0"
++            True
+             >>>
+         
+         Is it fast ?
+diff -u -r -N -x 'lz4*.c' -x 'lz4*.h' lz4-0.7.0/README.rst lz4-0.7.0-plus/README.rst
+--- lz4-0.7.0/README.rst	2014-03-21 00:06:08.000000000 +0000
++++ lz4-0.7.0-plus/README.rst	2015-06-28 12:53:51.000000000 +0100
+@@ -27,8 +27,8 @@
+     True
+     >>>
+ 
+-Methods
+-=======
++Methods and Constants
++=====================
+ The bindings provides some aliases too::
+ 
+     >>> import lz4
+@@ -36,6 +36,8 @@
+     True
+     >>> lz4.LZ4_uncompress == lz4.uncompress == z4.decompress == lz4.loads
+     True
++    >>> lz4.VERSION == lz4.__version__  # e.g. "0.7.0"
++    True
+     >>>
+ 
+ Is it fast ?
+diff -u -r -N -x 'lz4*.c' -x 'lz4*.h' lz4-0.7.0/setup.py lz4-0.7.0-plus/setup.py
+--- lz4-0.7.0/setup.py	2014-07-07 14:03:03.000000000 +0100
++++ lz4-0.7.0-plus/setup.py	2015-07-02 13:25:20.000000000 +0100
+@@ -2,12 +2,60 @@
+ 
+ 
+ from setuptools import setup, find_packages, Extension
++import subprocess
++import os
+ 
+ VERSION = (0, 7, 0)
++VERSION_STR = ".".join([str(x) for x in VERSION])
++
++# Check to see if we have a lz4 library installed on the system and
++# use it if so. If not, we'll use the bundled library. If lz4 is
++# installed it will have a pkg-config file, so we'll use pkg-config to
++# check for existence of the library.
++pkg_config_exe = os.environ.get('PKG_CONFIG', None) or 'pkg-config'
++cmd = '{0} --exists liblz4'.format(pkg_config_exe).split()
++liblz4_found = subprocess.call(cmd) == 0
++
++if liblz4_found:
++    # Use system lz4, and don't set optimization and warning flags for
++    # the compiler. Specifically we don't define LZ4_VERSION since the
++    # system lz4 library could be updated (that's the point of a
++    # shared library).
++    lz4mod = Extension('lz4',
++                       [
++                           'src/python-lz4.c'
++                       ],
++                       extra_compile_args=[
++                           "-std=c99",
++                           "-DVERSION=\"%s\"" % VERSION_STR,
++                       ],
++                       libraries=['lz4'],
++    )
++else:
++    # Use the bundled lz4 libs, and set the compiler flags as they
++    # historically have been set. We do set LZ4_VERSION here, since it
++    # won't change after compilation.
++    lz4mod = Extension('lz4',
++                       [
++                           'src/lz4.c',
++                           'src/lz4hc.c',
++                           'src/python-lz4.c'
++                       ],
++                       extra_compile_args=[
++                           "-std=c99",
++                           "-O3",
++                           "-Wall",
++                           "-W",
++                           "-Wundef",
++                           "-DVERSION=\"%s\"" % VERSION_STR,
++                           "-DLZ4_VERSION=\"r130\"",
++                       ]
++    )
++
+ 
+ setup(
+     name='lz4',
+-    version=".".join([str(x) for x in VERSION]),
++    version=VERSION_STR,
+     description="LZ4 Bindings for Python",
+     long_description=open('README.rst', 'r').read(),
+     author='Steeve Morin',
+@@ -15,21 +63,8 @@
+     url='https://github.com/steeve/python-lz4',
+     packages=find_packages('src'),
+     package_dir={'': 'src'},
+-    ext_modules=[
+-        Extension('lz4', [
+-            'src/lz4.c',
+-            'src/lz4hc.c',
+-            'src/python-lz4.c'
+-        ], extra_compile_args=[
+-            "-std=c99",
+-            "-O3",
+-            "-Wall",
+-            "-W",
+-            "-Wundef",
+-            "-DLZ4_VERSION=\"r119\"",
+-        ])
+-    ],
+-    setup_requires=["nose>=1.0"],
++    ext_modules=[lz4mod,],
++    tests_require=["nose>=1.0"],
+     test_suite = "nose.collector",
+     classifiers=[
+         'Development Status :: 5 - Production/Stable',
+diff -u -r -N -x 'lz4*.c' -x 'lz4*.h' lz4-0.7.0/src/lz4.egg-info/PKG-INFO lz4-0.7.0-plus/src/lz4.egg-info/PKG-INFO
+--- lz4-0.7.0/src/lz4.egg-info/PKG-INFO	2014-07-07 14:04:31.000000000 +0100
++++ lz4-0.7.0-plus/src/lz4.egg-info/PKG-INFO	2015-07-02 13:27:18.000000000 +0100
+@@ -35,8 +35,8 @@
+             True
+             >>>
+         
+-        Methods
+-        =======
++        Methods and Constants
++        =====================
+         The bindings provides some aliases too::
+         
+             >>> import lz4
+@@ -44,6 +44,8 @@
+             True
+             >>> lz4.LZ4_uncompress == lz4.uncompress == z4.decompress == lz4.loads
+             True
++            >>> lz4.VERSION == lz4.__version__  # e.g. "0.7.0"
++            True
+             >>>
+         
+         Is it fast ?
+diff -u -r -N -x 'lz4*.c' -x 'lz4*.h' lz4-0.7.0/src/lz4.egg-info/SOURCES.txt lz4-0.7.0-plus/src/lz4.egg-info/SOURCES.txt
+--- lz4-0.7.0/src/lz4.egg-info/SOURCES.txt	2014-07-07 14:04:31.000000000 +0100
++++ lz4-0.7.0-plus/src/lz4.egg-info/SOURCES.txt	2015-07-02 13:27:18.000000000 +0100
+@@ -10,4 +10,6 @@
+ src/lz4.egg-info/PKG-INFO
+ src/lz4.egg-info/SOURCES.txt
+ src/lz4.egg-info/dependency_links.txt
+-src/lz4.egg-info/top_level.txt
+\ No newline at end of file
++src/lz4.egg-info/top_level.txt
++tests/bench.py
++tests/test.py
+\ No newline at end of file
+diff -u -r -N -x 'lz4*.c' -x 'lz4*.h' lz4-0.7.0/src/python-lz4.c lz4-0.7.0-plus/src/python-lz4.c
+--- lz4-0.7.0/src/python-lz4.c	2014-07-07 14:03:03.000000000 +0100
++++ lz4-0.7.0-plus/src/python-lz4.c	2015-06-28 15:09:07.000000000 +0100
+@@ -55,6 +55,40 @@
+ 
+ static const int hdr_size = sizeof(uint32_t);
+ 
++
++static PyObject *py_lz4_compress_fast(PyObject *self, PyObject *args) {
++    PyObject *result;
++    const char *source;
++    int source_size;
++    char *dest;
++    int dest_size;
++    int acceleration;
++
++    if (!PyArg_ParseTuple(args, "s#I", &source, &source_size, &acceleration))
++        return NULL;
++
++    dest_size = hdr_size + LZ4_compressBound(source_size);
++    result = PyBytes_FromStringAndSize(NULL, dest_size);
++    if (result == NULL) {
++        return NULL;
++    }
++    dest = PyBytes_AS_STRING(result);
++    store_le32(dest, source_size);
++    if (source_size > 0) {
++    	//int LZ4_compress_fast(const char* source, char* dest, int inputSize, int maxOutputSize, int acceleration)
++        int osize = LZ4_compress_fast(source, dest + hdr_size, source_size, LZ4_compressBound(source_size), acceleration);
++        int actual_size = hdr_size + osize;
++        /* Resizes are expensive; tolerate some slop to avoid. */
++        if (actual_size < (dest_size / 4) * 3) {
++            _PyBytes_Resize(&result, actual_size);
++        } else {
++            Py_SIZE(result) = actual_size;
++        }
++    }
++    return result;
++}
++
++
+ static PyObject *compress_with(compressor compress, PyObject *self, PyObject *args) {
+     PyObject *result;
+     const char *source;
+@@ -125,15 +159,22 @@
+     return result;
+ }
+ 
++static PyObject *py_lz4_versionnumber(PyObject *self, PyObject *args) {
++  return Py_BuildValue("i", LZ4_versionNumber());
++}
++
+ static PyMethodDef Lz4Methods[] = {
++	{"LZ4_compress_fast",  py_lz4_compress_fast, METH_VARARGS, COMPRESSFAST_DOCSTRING},
+     {"LZ4_compress",  py_lz4_compress, METH_VARARGS, COMPRESS_DOCSTRING},
+     {"LZ4_uncompress",  py_lz4_uncompress, METH_VARARGS, UNCOMPRESS_DOCSTRING},
+     {"compress",  py_lz4_compress, METH_VARARGS, COMPRESS_DOCSTRING},
++    {"compress_fast",  py_lz4_compress_fast, METH_VARARGS, COMPRESS_DOCSTRING},
+     {"compressHC",  py_lz4_compressHC, METH_VARARGS, COMPRESSHC_DOCSTRING},
+     {"uncompress",  py_lz4_uncompress, METH_VARARGS, UNCOMPRESS_DOCSTRING},
+     {"decompress",  py_lz4_uncompress, METH_VARARGS, UNCOMPRESS_DOCSTRING},
+     {"dumps",  py_lz4_compress, METH_VARARGS, COMPRESS_DOCSTRING},
+     {"loads",  py_lz4_uncompress, METH_VARARGS, UNCOMPRESS_DOCSTRING},
++    {"lz4version",  py_lz4_versionnumber, METH_VARARGS, "Returns the version number of the lz4 C library"},
+     {NULL, NULL, 0, NULL}
+ };
+ 
+@@ -202,6 +243,12 @@
+         INITERROR;
+     }
+ 
++    PyModule_AddStringConstant(module, "VERSION", VERSION);
++    PyModule_AddStringConstant(module, "__version__", VERSION);
++#ifdef LZ4_VERSION /* Only defined if we're building against bundled lz4 */
++    PyModule_AddStringConstant(module, "LZ4_VERSION", LZ4_VERSION);
++#endif
++
+ #if PY_MAJOR_VERSION >= 3
+     return module;
+ #endif
+diff -u -r -N -x 'lz4*.c' -x 'lz4*.h' lz4-0.7.0/src/python-lz4.h lz4-0.7.0-plus/src/python-lz4.h
+--- lz4-0.7.0/src/python-lz4.h	2014-03-21 00:06:08.000000000 +0000
++++ lz4-0.7.0-plus/src/python-lz4.h	2015-06-27 22:37:54.000000000 +0100
+@@ -32,11 +32,13 @@
+ #include "Python.h"
+ 
+ static PyObject *py_lz4_compress(PyObject *self, PyObject *args);
++static PyObject *py_lz4_compress_fast(PyObject *self, PyObject *args);
+ static PyObject *py_lz4_uncompress(PyObject *self, PyObject *args);
+ 
+ PyMODINIT_FUNC initlz4(void);
+ 
+ #define COMPRESS_DOCSTRING      "Compress string, returning the compressed data.\nRaises an exception if any error occurs."
++#define COMPRESSFAST_DOCSTRING  "Compress string with the given acceleration, returning the compressed data.\nRaises an exception if any error occurs."
+ #define COMPRESSHC_DOCSTRING    COMPRESS_DOCSTRING "\n\nCompared to compress, this gives a better compression ratio, but is much slower."
+ #define UNCOMPRESS_DOCSTRING    "Decompress string, returning the uncompressed data.\nRaises an exception if any error occurs."
+ 
+diff -u -r -N -x 'lz4*.c' -x 'lz4*.h' lz4-0.7.0/tests/bench.py lz4-0.7.0-plus/tests/bench.py
+--- lz4-0.7.0/tests/bench.py	1970-01-01 01:00:00.000000000 +0100
++++ lz4-0.7.0-plus/tests/bench.py	2015-06-27 19:19:29.000000000 +0100
+@@ -0,0 +1,23 @@
++import uuid
++import timeit
++import lz4
++import snappy
++import os
++from timeit import Timer
++
++DATA = open("../src/lz4.c", "rb").read()
++LZ4_DATA = lz4.compress(DATA)
++SNAPPY_DATA = snappy.compress(DATA)
++LOOPS = 200000
++
++print("Data Size:")
++print("  Input: %d" % len(DATA))
++print("  LZ4: %d (%.2f)" % (len(LZ4_DATA), len(LZ4_DATA) / float(len(DATA))))
++print("  Snappy: %d (%.2f)" % (len(SNAPPY_DATA), len(SNAPPY_DATA) / float(len(DATA))))
++print("  LZ4 / Snappy: %f" % (float(len(LZ4_DATA)) / float(len(SNAPPY_DATA))))
++
++print("Benchmark: %d calls" % LOOPS)
++print("  LZ4 Compression: %fs" % Timer("lz4.compress(DATA)", "from __main__ import DATA; import lz4").timeit(number=LOOPS))
++print("  Snappy Compression: %fs" % Timer("snappy.compress(DATA)", "from __main__ import DATA; import snappy").timeit(number=LOOPS))
++print("  LZ4 Decompression: %fs" % Timer("lz4.uncompress(LZ4_DATA)", "from __main__ import LZ4_DATA; import lz4").timeit(number=LOOPS))
++print("  Snappy Decompression : %fs" % Timer("snappy.uncompress(SNAPPY_DATA)", "from __main__ import SNAPPY_DATA; import snappy").timeit(number=LOOPS))
+diff -u -r -N -x 'lz4*.c' -x 'lz4*.h' lz4-0.7.0/tests/test.py lz4-0.7.0-plus/tests/test.py
+--- lz4-0.7.0/tests/test.py	1970-01-01 01:00:00.000000000 +0100
++++ lz4-0.7.0-plus/tests/test.py	2015-06-27 19:19:29.000000000 +0100
+@@ -0,0 +1,16 @@
++import lz4
++import sys
++
++
++import unittest
++import os
++
++class TestLZ4(unittest.TestCase):
++
++    def test_random(self):
++      DATA = os.urandom(128 * 1024)  # Read 128kb
++      self.assertEqual(DATA, lz4.loads(lz4.dumps(DATA)))
++
++if __name__ == '__main__':
++    unittest.main()
++

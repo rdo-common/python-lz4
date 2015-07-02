@@ -11,22 +11,26 @@
 
 Name:           python-%{srcname}
 Version:        0.7.0
-Release:        2%{?dist}
+Release:        3%{?dist}
 URL:            https://github.com/steeve/%{name}
 Summary:        LZ4 Bindings for Python
 License:        BSD
 Source:         https://pypi.python.org/packages/source/l/%{srcname}/%{srcname}-%{version}.tar.gz
 
-# Build against system lz4 libs rather than bundled libs
-Patch0:         python-lz4-systemlib.patch
+# This patch enables building against system lz4 and adds new functions to the class.
+# https://github.com/steeve/python-lz4/pull/41
+# Hopefully can be removed post 0.7.0
+Patch0:         python-lz4-0.7.0-pr41.patch
 
 BuildRequires:  python2-devel
 BuildRequires:  python-setuptools
 BuildRequires:  lz4-devel
+BuildRequires:  python-nose
 
 %if %{with python3}
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
+BuildRequires:  python3-nose
 %endif
 
 %description
@@ -93,11 +97,23 @@ popd
 
 
 %check
-# No test suite at present, so we'll just try importing
+# First we'll just try importing
 PYTHONPATH=$RPM_BUILD_ROOT%{python2_sitearch} %{__python2} -c "import lz4"
 %if %{with python3}
 PYTHONPATH=$RPM_BUILD_ROOT%{python3_sitearch} %{__python3} -c "import lz4"
 %endif
+
+# And also run the tests included
+pushd python2
+%{__python2} setup.py test
+popd
+
+%if %{with python3}
+pushd python3
+%{__python3} setup.py test
+popd
+%endif # with python3
+
 
 %files
 # Unfortunately there's no LICENSE/COPYING file included.
@@ -113,6 +129,11 @@ PYTHONPATH=$RPM_BUILD_ROOT%{python3_sitearch} %{__python3} -c "import lz4"
 %endif
 
 %changelog
+* Mon Jun 29 2015 Jonathan Underwood <jonathan.underwood@gmail.com> - 0.7.0-3
+- Update patch to build against system libs and add compress_fast method
+- Add BR for python[3]-nose
+- Run bundled test in %%check
+
 * Sat Jun 27 2015 Jonathan Underwood <jonathan.underwood@gmail.com> - 0.7.0-2
 - Drop unneeded Requires for lz4
 - Remove commented out cruft from spec
