@@ -11,7 +11,7 @@
 
 Name:           python-%{srcname}
 Version:        0.7.0
-Release:        3%{?dist}
+Release:        4%{?dist}
 URL:            https://github.com/steeve/%{name}
 Summary:        LZ4 Bindings for Python
 License:        BSD
@@ -129,6 +129,9 @@ popd
 %endif
 
 %changelog
+* Fri Nov 06 2015 Robert Kuska <rkuska@redhat.com> - 0.7.0-4
+- Rebuilt for Python3.5 rebuild
+
 * Mon Jun 29 2015 Jonathan Underwood <jonathan.underwood@gmail.com> - 0.7.0-3
 - Update patch to build against system libs and add compress_fast method
 - Add BR for python[3]-nose
