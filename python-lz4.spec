@@ -11,7 +11,7 @@
 
 Name:           python-%{srcname}
 Version:        0.7.0
-Release:        4%{?dist}
+Release:        5%{?dist}
 URL:            https://github.com/steeve/%{name}
 Summary:        LZ4 Bindings for Python
 License:        BSD
@@ -129,6 +129,9 @@ popd
 %endif
 
 %changelog
+* Thu Feb 04 2016 Fedora Release Engineering <releng@fedoraproject.org> - 0.7.0-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
+
 * Fri Nov 06 2015 Robert Kuska <rkuska@redhat.com> - 0.7.0-4
 - Rebuilt for Python3.5 rebuild
 
