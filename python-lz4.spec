@@ -1,17 +1,12 @@
 %global srcname lz4
 
 Name:           python-%{srcname}
-Version:        0.7.0
-Release:        6%{?dist}
-URL:            https://github.com/steeve/%{name}
+Version:        0.8.1
+Release:        1%{?dist}
+URL:            https://github.com/%{name}/%{name}
 Summary:        LZ4 Bindings for Python
 License:        BSD
-Source:         https://pypi.python.org/packages/source/l/%{srcname}/%{srcname}-%{version}.tar.gz
-
-# This patch enables building against system lz4 and adds new functions to the class.
-# https://github.com/steeve/python-lz4/pull/41
-# Hopefully can be removed post 0.7.0
-Patch0:         python-lz4-0.7.0-pr41.patch
+Source:         https://pypi.python.org/packages/63/a5/6fe9d19f5ecd3918c48408f6e14e0cbb87a171dc33ed64cfb93e93229ef5/lz4-0.8.1.tar.gz
 
 BuildRequires:  python2-devel
 BuildRequires:  python-setuptools
@@ -89,6 +84,12 @@ PYTHONPATH=$RPM_BUILD_ROOT%{python3_sitearch} %{__python3} -c "import lz4"
 
 
 %changelog
+* Wed Apr 27 2016 Jonathan Underwood <jonathan.underwood@gmail.com> - 0.8.1-1
+- Update to 0.8.1
+- Use new upstream URL
+- Drop upstreamed patch
+- Use PyPi source url with hash, for now
+
 * Sun Feb 28 2016 Jonathan Underwood <jonathan.underwood@gmail.com> - 0.7.0-6
 - Spec file cleanup
 - Add use of python_provide macro
