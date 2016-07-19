@@ -2,7 +2,7 @@
 
 Name:           python-%{srcname}
 Version:        0.8.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 URL:            https://github.com/%{name}/%{name}
 Summary:        LZ4 Bindings for Python
 License:        BSD
@@ -84,6 +84,9 @@ PYTHONPATH=$RPM_BUILD_ROOT%{python3_sitearch} %{__python3} -c "import lz4"
 
 
 %changelog
+* Tue Jul 19 2016 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.8.1-2
+- https://fedoraproject.org/wiki/Changes/Automatic_Provides_for_Python_RPM_Packages
+
 * Wed Apr 27 2016 Jonathan Underwood <jonathan.underwood@gmail.com> - 0.8.1-1
 - Update to 0.8.1
 - Use new upstream URL
