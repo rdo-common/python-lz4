@@ -1,20 +1,20 @@
 %global srcname lz4
 
 Name:           python-%{srcname}
-Version:        0.8.1
-Release:        2%{?dist}
+Version:        0.8.2
+Release:        1%{?dist}
 URL:            https://github.com/%{name}/%{name}
 Summary:        LZ4 Bindings for Python
 License:        BSD
-Source:         https://pypi.python.org/packages/63/a5/6fe9d19f5ecd3918c48408f6e14e0cbb87a171dc33ed64cfb93e93229ef5/lz4-0.8.1.tar.gz
+Source:         https://files.pythonhosted.org/packages/source/l/%{srcname}/%{srcname}-%{version}.tar.gz
 
 BuildRequires:  python2-devel
 BuildRequires:  python-setuptools
 BuildRequires:  lz4-devel
 BuildRequires:  python-nose
-BuildRequires:  python3-devel
-BuildRequires:  python3-setuptools
-BuildRequires:  python3-nose
+BuildRequires:  python%{python3_pkgversion}-devel
+BuildRequires:  python%{python3_pkgversion}-setuptools
+BuildRequires:  python%{python3_pkgversion}-nose
 
 %description
 Python bindings for the lz4 compression library.
@@ -27,11 +27,11 @@ Summary:        LZ4 Bindings for Python 2
 Python 2 bindings for the lz4 compression library.
 
 
-%package -n python3-lz4
+%package -n python%{python3_pkgversion}-lz4
 Summary:        LZ4 Bindings for Python 3
-%{?python_provide:%python_provide python3-%{srcname}}
+%{?python_provide:%python_provide python%{python3_pkgversion}-%{srcname}}
 
-%description -n python3-lz4
+%description -n python%{python3_pkgversion}-lz4
 Python 3 bindings for the lz4 compression library.
 
 
@@ -78,12 +78,16 @@ PYTHONPATH=$RPM_BUILD_ROOT%{python3_sitearch} %{__python3} -c "import lz4"
 %{python2_sitearch}/lz4*
 
 
-%files -n python3-lz4
+%files -n python%{python3_pkgversion}-lz4
 %doc README.rst
 %{python3_sitearch}/lz4*
 
 
 %changelog
+* Tue Nov  8 2016 Orion Poplawski <orion@cora.nwra.com> - 0.8.2-1
+- Update to 0.8.2
+- Enable EPEL7 builds
+
 * Tue Jul 19 2016 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.8.1-2
 - https://fedoraproject.org/wiki/Changes/Automatic_Provides_for_Python_RPM_Packages
 
