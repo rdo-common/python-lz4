@@ -2,7 +2,7 @@
 
 Name:           python-%{srcname}
 Version:        0.8.2
-Release:        1%{?dist}
+Release:        2%{?dist}
 URL:            https://github.com/%{name}/%{name}
 Summary:        LZ4 Bindings for Python
 License:        BSD
@@ -84,6 +84,9 @@ PYTHONPATH=$RPM_BUILD_ROOT%{python3_sitearch} %{__python3} -c "import lz4"
 
 
 %changelog
+* Mon Dec 19 2016 Miro Hrončok <mhroncok@redhat.com> - 0.8.2-2
+- Rebuild for Python 3.6
+
 * Tue Nov  8 2016 Orion Poplawski <orion@cora.nwra.com> - 0.8.2-1
 - Update to 0.8.2
 - Enable EPEL7 builds
