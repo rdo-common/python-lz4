@@ -10,6 +10,7 @@ Source:         https://files.pythonhosted.org/packages/source/l/%{srcname}/%{sr
 
 BuildRequires:  python2-devel
 BuildRequires:  python-setuptools
+BuildRequires:  python-setuptools_scm
 BuildRequires:  lz4-devel
 BuildRequires:  python-nose
 
