@@ -12,9 +12,6 @@ BuildRequires:  python2-devel
 BuildRequires:  python-setuptools
 BuildRequires:  lz4-devel
 BuildRequires:  python-nose
-BuildRequires:  python%{python3_pkgversion}-devel
-BuildRequires:  python%{python3_pkgversion}-setuptools
-BuildRequires:  python%{python3_pkgversion}-nose
 
 %description
 Python bindings for the lz4 compression library.
@@ -27,14 +24,6 @@ Summary:        LZ4 Bindings for Python 2
 Python 2 bindings for the lz4 compression library.
 
 
-%package -n python%{python3_pkgversion}-lz4
-Summary:        LZ4 Bindings for Python 3
-%{?python_provide:%python_provide python%{python3_pkgversion}-%{srcname}}
-
-%description -n python%{python3_pkgversion}-lz4
-Python 3 bindings for the lz4 compression library.
-
-
 %prep
 %autosetup -n %{srcname}-%{version} -p1
 
@@ -44,17 +33,12 @@ rm lz4libs/lz4*.[ch]
 
 %build
 %py2_build
-%py3_build
 
 
 %install
 %py2_install
-%py3_install
 
 # Fix permissions on shared objects
-find %{buildroot}%{python3_sitearch} -name 'lz4*.so' \
-    -exec chmod 0755 {} \;
-
 find %{buildroot}%{python2_sitearch} -name 'lz4*.so' \
     -exec chmod 0755 {} \;
 
@@ -62,11 +46,9 @@ find %{buildroot}%{python2_sitearch} -name 'lz4*.so' \
 %check
 # First we'll just try importing
 PYTHONPATH=$RPM_BUILD_ROOT%{python2_sitearch} %{__python2} -c "import lz4"
-PYTHONPATH=$RPM_BUILD_ROOT%{python3_sitearch} %{__python3} -c "import lz4"
 
 # And also run the tests included
 %{__python2} setup.py test
-%{__python3} setup.py test
 
 
 
@@ -76,11 +58,6 @@ PYTHONPATH=$RPM_BUILD_ROOT%{python3_sitearch} %{__python3} -c "import lz4"
 # https://github.com/steeve/python-lz4/issues/38
 %doc README.rst
 %{python2_sitearch}/lz4*
-
-
-%files -n python%{python3_pkgversion}-lz4
-%doc README.rst
-%{python3_sitearch}/lz4*
 
 
 %changelog
