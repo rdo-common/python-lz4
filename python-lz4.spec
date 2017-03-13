@@ -1,8 +1,8 @@
 %global srcname lz4
 
 Name:           python-%{srcname}
-Version:        0.8.2
-Release:        3%{?dist}
+Version:        0.9.0
+Release:        1%{?dist}
 URL:            https://github.com/%{name}/%{name}
 Summary:        LZ4 Bindings for Python
 License:        BSD
@@ -39,7 +39,7 @@ Python 3 bindings for the lz4 compression library.
 %autosetup -n %{srcname}-%{version} -p1
 
 # Remove bundled lz4 as we're building against system lib
-rm src/lz4*.[ch]
+rm lz4libs/lz4*.[ch]
 
 
 %build
@@ -84,6 +84,9 @@ PYTHONPATH=$RPM_BUILD_ROOT%{python3_sitearch} %{__python3} -c "import lz4"
 
 
 %changelog
+* Mon Mar 13 2017 Alan Pevec <alan.pevec@redhat.com> 0.9.0-1
+- Update to 0.9.0
+
 * Sat Feb 11 2017 Fedora Release Engineering <releng@fedoraproject.org> - 0.8.2-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
 
